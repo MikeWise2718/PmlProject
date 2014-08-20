@@ -5,8 +5,13 @@ Practical Machine Learning - Course Project Writup
 
 Mike Wise - 20 Aug 2014 - predmachlearn-004
 
-This looks at the practicality of juding he quality of excersize execution (weight lifting) from accerlator data gathered from sensors located on 
-the subjects body.
+
+Background
+
+Using devices such as Jawbone Up, Nike FuelBand, and Fitbit it is now possible to collect a large amount of data about personal activity relatively inexpensively. These type of devices are part of the quantified self movement - a group of enthusiasts who take measurements about themselves regularly to improve their health, to find patterns in their behavior, or because they are tech geeks. One thing that people regularly do is quantify how much of a particular activity they do, but they rarely quantify the quality - i.e.how well they do it. The goal here is to use data from accelerometers on the belt, forearm, arm, and dumbell of 6 participants to assess the quality. These participants were asked to perform barbell lifts correctly and incorrectly in 5 different ways. More information is available from the website here (see the section on the Weight Lifting Exercise Dataset):
+
+             http://groupware.les.inf.puc-rio.br/har 
+ 
 
 
 # Data Processing
@@ -15,8 +20,7 @@ Here we link in some libraries will will be using in the following code, we pres
 has already been set to contain the data.
 We then load the data (as a data.table as opposed to a data.frame 
 for faster and more flexible manipluation)
-## Load the data
-Here we load the data 
+
 ```{r}
 library(data.table)
 library(ElemStatLearn)
@@ -78,7 +82,10 @@ print(msg)
 
 # Model Fitting
 
-We fit a models to the data using Random Forests. The accuracy was 100 percent.
+We fit a model to the data using the "Random Forests" algorithm from the randomForest library. We then evaluate the importance of the
+various variable and assess the overal accurace of the model using the Confusion Matrix.
+
+As can be seen from the above Confusion Matrix, the overall accuracy of the model on the validation data set is 100%. This means that when the model is applied to the independent testing set, there is an out of sample error of 0.0%.
 
 # Random Forests
 ```{r}

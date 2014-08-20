@@ -196,8 +196,12 @@ hr {
 
 <p>Mike Wise - 20 Aug 2014 - predmachlearn-004</p>
 
-<p>This looks at the practicality of juding he quality of excersize execution (weight lifting) from accerlator data gathered from sensors located on 
-the subjects body.</p>
+<p>Background</p>
+
+<p>Using devices such as Jawbone Up, Nike FuelBand, and Fitbit it is now possible to collect a large amount of data about personal activity relatively inexpensively. These type of devices are part of the quantified self movement - a group of enthusiasts who take measurements about themselves regularly to improve their health, to find patterns in their behavior, or because they are tech geeks. One thing that people regularly do is quantify how much of a particular activity they do, but they rarely quantify the quality - i.e.how well they do it. The goal here is to use data from accelerometers on the belt, forearm, arm, and dumbell of 6 participants to assess the quality. These participants were asked to perform barbell lifts correctly and incorrectly in 5 different ways. More information is available from the website here (see the section on the Weight Lifting Exercise Dataset):</p>
+
+<pre><code>         http://groupware.les.inf.puc-rio.br/har 
+</code></pre>
 
 <h1>Data Processing</h1>
 
@@ -208,10 +212,6 @@ has already been set to contain the data.
 We then load the data (as a data.table as opposed to a data.frame 
 for faster and more flexible manipluation)</p>
 
-<h2>Load the data</h2>
-
-<p>Here we load the data </p>
-
 <pre><code class="r">library(data.table)
 library(ElemStatLearn)
 library(randomForest)
@@ -221,21 +221,7 @@ library(caret)
 ## Load the data
 
 otrn &lt;- data.table(read.csv(&quot;pml-training.csv&quot;))
-</code></pre>
-
-<pre><code>## Warning: cannot open file &#39;pml-training.csv&#39;: No such file or directory
-</code></pre>
-
-<pre><code>## Error: cannot open the connection
-</code></pre>
-
-<pre><code class="r">otst &lt;- data.table(read.csv(&quot;pml-testing.csv&quot;))
-</code></pre>
-
-<pre><code>## Warning: cannot open file &#39;pml-testing.csv&#39;: No such file or directory
-</code></pre>
-
-<pre><code>## Error: cannot open the connection
+otst &lt;- data.table(read.csv(&quot;pml-testing.csv&quot;))
 </code></pre>
 
 <p>There are 160 columns in the original data, many of them blank and filled with NA values. We reduce the dataset, throwing
@@ -362,7 +348,10 @@ print(msg)
 
 <h1>Model Fitting</h1>
 
-<p>We fit a models to the data using Random Forests. The accuracy was 100 percent.</p>
+<p>We fit a model to the data using the &ldquo;Random Forests&rdquo; algorithm from the randomForest library. We then evaluate the importance of the
+various variable and assess the overal accurace of the model using the Confusion Matrix.</p>
+
+<p>As can be seen from the above Confusion Matrix, the overall accuracy of the model on the validation data set is 100%. This means that when the model is applied to the independent testing set, there is an out of sample error of 0.0%.</p>
 
 <h1>Random Forests</h1>
 
