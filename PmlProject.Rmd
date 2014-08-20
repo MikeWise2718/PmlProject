@@ -1,0 +1,96 @@
+# Judging Quality of Excersice Execution from Accelerator data
+
+
+Practical Machine Learning - Course Project Writup
+
+Mike Wise - 20 Aug 2014 - predmachlearn-004
+
+This looks at the practicality of juding he quality of excersize execution (weight lifting) from accerlator data gathered from sensors located on 
+the subjects body.
+
+
+# Data Processing
+## Loading and preprocessing the data
+Here we link in some libraries will will be using in the following code, we presume the directory
+has already been set to contain the data.
+We then load the data (as a data.table as opposed to a data.frame 
+for faster and more flexible manipluation)
+## Load the data
+Here we load the data 
+```{r}
+library(data.table)
+library(ElemStatLearn)
+library(randomForest)
+library(caret)
+
+# Data Processing
+## Load the data
+
+otrn <- data.table(read.csv("pml-training.csv"))
+otst <- data.table(read.csv("pml-testing.csv"))
+```
+
+There are 160 columns in the original data, many of them blank and filled with NA values. We reduce the dataset, throwing
+away all columns that are not numeric or integer. We also throw away the column "num_window" as that is not sensor data.
+
+```{r}
+## Get rid of all non-numeric columns not present in both datasets
+cnstst <- colnames(otrn)[7:59]
+lntrn <- length(otrn)
+lntst <- length(otst)
+
+ntrn <- data.table(user_name=otrn[["user_name"]],classe=otrn[["classe"]])
+ntst <- data.table(user_name=otst[["user_name"]])
+
+for (i in 1:length(cnstst))
+{
+  cn <- cnstst[[i]]
+  if (cn=="num_window") next
+  clstst <- class(otst[[cn]])
+  clstrn <- class(otrn[[cn]])
+  if (clstst!="numeric" && clstst !="integer")
+  {
+    print(sprintf("%d tst %s is not numeric/integer but %s",i,cn,clstst))
+    next
+  }
+  if (clstrn!="numeric" && clstrn !="integer")
+  {
+    print(sprintf("%d trn %s is not numeric/integer but %s",i,cn,clstrn))
+    next
+  }
+  ntrn[[cn]] <- otrn[[cn]]
+  ntst[[cn]] <- otst[[cn]]
+}
+```
+
+Here we check the quality of the data, showing what columns we have retained (all relevant sensor data columns) and 
+showing that we have reduced 
+
+```{r}
+# Check the quality
+summary(ntrn)
+
+ona <- sum(is.na(otrn))
+nna <- sum(is.na(ntrn))
+msg <- sprintf("Original training na count:%d  - After processing:%d",ona,nna)
+print(msg)
+```
+
+# Model Fitting
+
+We fit a models to the data using Random Forests. The accuracy was 100 percent.
+
+# Random Forests
+```{r}
+## Random Forests
+set.seed(2718)
+rffit <- randomForest(classe ~ ., ntrn, importance=T)
+
+prftrn <- predict(rffit, ntrn)
+confusionMatrix(prftrn, ntrn$classe)
+
+varImpPlot(rffit)
+
+prftst <- predict(rffit, ntst)
+prftst
+```
