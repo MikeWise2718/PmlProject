@@ -25,9 +25,9 @@ More information is available from the website here (see the section on the Weig
 # Overall Approach
 
 The overall approach was as follow:
-- 1. **Data Preperation** - here the training and test data was read and new datasets were created containing only numeric columns that were approprate for modeling.
-- 2. **Data Exploration and Model Selection** - here the data was investigated, and an investigation of the tradeoff between accuracy and training/validation split size was performed for various combinations of modeling techniques and variable subsets.
-- 3. **Modeling and Analysis** - In this section the split was performed and selected model was run and an analysis of the results was perfomed. The Out of sample error is also calculated.
+- 1. **Data Preperation** - here the training and test data was read and new datasets were created containing only numeric columns that were appropriate for modeling.
+- 2. **Data Exploration and Model Selection** - here the data was investigated, and an investigation of the trade off between accuracy and training/validation split size was performed for various combinations of modeling techniques and variable subsets.
+- 3. **Modeling and Analysis** - In this section the split was performed and selected model was run and an analysis of the results was performed. The Out of sample error is also calculated.
 - 4. **Prediction** - Here the results for the Prediction Assignment Submission are calculated.
 
 Some additional code is also presented in the Appendix.
@@ -35,8 +35,8 @@ Some additional code is also presented in the Appendix.
 # Data Preperation
 
 Our data came in two spreadsheet files:
-- pml-training.csv - a csv file containing 19622 observations with 160 columns with labeled training data. This data is to be used to train and validate our model.
-- pml-training.csv - a csv file containing 20 observations with the same columns (but minus the label). This data is t be predicted with our final model and submitted. it is only used in the last step of this project.
+- **pml-training.csv** - a csv file containing 19622 observations with 160 columns with labeled training data. This data is to be used to train and validate our model.
+- **pml-training.csv** - a csv file containing 20 observations with the same columns (but minus the label). This data is t be predicted with our final model and submitted. it is only used in the last step of this project.
 
 ## Loading and preprocessing the data
 First of course we load the data.
@@ -95,6 +95,13 @@ Now that we have a more acceptable number of data columns (54 vs. 160) we look a
 
 ```r
 library(reshape)
+```
+
+```
+## Warning: package 'reshape' was built under R version 3.1.1
+```
+
+```r
 library(ggplot2,quietly=T)
 
 hdat <- melt(ntrn)
@@ -129,9 +136,29 @@ set using all the variables.
 
 ```r
 library(ElemStatLearn,quietly=T)
-library(randomForest,quietly=T)
-library(caret,quietly=T)
+```
 
+```
+## Warning: package 'ElemStatLearn' was built under R version 3.1.1
+```
+
+```r
+library(randomForest,quietly=T)
+```
+
+```
+## Warning: package 'randomForest' was built under R version 3.1.1
+```
+
+```r
+library(caret,quietly=T)
+```
+
+```
+## Warning: package 'caret' was built under R version 3.1.1
+```
+
+```r
 set.seed(2718)
 rffit1 <- randomForest(classe ~ ., ntrn, importance=T)
 
@@ -151,7 +178,7 @@ The variables we selected were:
 
 
 To investigate the trade offs we executed a large number of randomForest calls with different sizes of training/validation set splits, different number of variables, and recorded the accuracy on each run. 
-Specificaly:
+Specifically:
  - we varied the randomForest calls for 3 variable, 7 variable, and 54 variable subsets.
  - varied the training/validation set split from 0.05% to 0.95% in 0.05% steps
  - we ran the resulting randomForest fit against the validation set and recorded the accuracy.
@@ -191,6 +218,7 @@ In the end we chose to go with the model using 7 variables and a 75% training/va
 -  Had very good accuracy.
 -  Had performance much better than the 54 variable set. 
 
+Based on the values for the run and the model and split that we have chosen, **we expect the out of sample error rate to be around 98.8%**, the average of the three 7 var runs we did at 75% split.
 
 # Model and Analysis
 
@@ -243,6 +271,19 @@ Now we check the results against the training set, not surprisingly it is 100 pe
 ```r
 prftrn <- predict(rffit, ntrn)
 confusionMatrix(prftrn, ntrn$classe)
+```
+
+```
+## Warning: package 'e1071' was built under R version 3.1.1
+```
+
+```
+## 
+## Attaching package: 'e1071'
+## 
+## The following object is masked from 'package:Hmisc':
+## 
+##     impute
 ```
 
 ```

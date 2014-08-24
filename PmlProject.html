@@ -222,9 +222,9 @@ hr {
 <p>The overall approach was as follow:</p>
 
 <ul>
-<li>1. <strong>Data Preperation</strong> - here the training and test data was read and new datasets were created containing only numeric columns that were approprate for modeling.</li>
-<li>2. <strong>Data Exploration and Model Selection</strong> - here the data was investigated, and an investigation of the tradeoff between accuracy and training/validation split size was performed for various combinations of modeling techniques and variable subsets.</li>
-<li>3. <strong>Modeling and Analysis</strong> - In this section the split was performed and selected model was run and an analysis of the results was perfomed. The Out of sample error is also calculated.</li>
+<li>1. <strong>Data Preperation</strong> - here the training and test data was read and new datasets were created containing only numeric columns that were appropriate for modeling.</li>
+<li>2. <strong>Data Exploration and Model Selection</strong> - here the data was investigated, and an investigation of the trade off between accuracy and training/validation split size was performed for various combinations of modeling techniques and variable subsets.</li>
+<li>3. <strong>Modeling and Analysis</strong> - In this section the split was performed and selected model was run and an analysis of the results was performed. The Out of sample error is also calculated.</li>
 <li>4. <strong>Prediction</strong> - Here the results for the Prediction Assignment Submission are calculated.</li>
 </ul>
 
@@ -235,8 +235,8 @@ hr {
 <p>Our data came in two spreadsheet files:</p>
 
 <ul>
-<li>pml-training.csv - a csv file containing 19622 observations with 160 columns with labeled training data. This data is to be used to train and validate our model.</li>
-<li>pml-training.csv - a csv file containing 20 observations with the same columns (but minus the label). This data is t be predicted with our final model and submitted. it is only used in the last step of this project.</li>
+<li><strong>pml-training.csv</strong> - a csv file containing 19622 observations with 160 columns with labeled training data. This data is to be used to train and validate our model.</li>
+<li><strong>pml-training.csv</strong> - a csv file containing 20 observations with the same columns (but minus the label). This data is t be predicted with our final model and submitted. it is only used in the last step of this project.</li>
 </ul>
 
 <h2>Loading and preprocessing the data</h2>
@@ -287,7 +287,12 @@ print(sprintf(&quot;Original training NA count:%d  - After processing:%d&quot;,o
 <p>Now that we have a more acceptable number of data columns (54 vs. 160) we look at the overall data.</p>
 
 <pre><code class="r">library(reshape)
-library(ggplot2,quietly=T)
+</code></pre>
+
+<pre><code>## Warning: package &#39;reshape&#39; was built under R version 3.1.1
+</code></pre>
+
+<pre><code class="r">library(ggplot2,quietly=T)
 
 hdat &lt;- melt(ntrn)
 ggplot(hdat, aes(x=value)) + facet_wrap(~variable, scales=&quot;free&quot;,ncol=6) + geom_histogram()
@@ -320,10 +325,24 @@ There are 19622 observations of 160 columns in our dataset. Here we look at the 
 set using all the variables. </p>
 
 <pre><code class="r">library(ElemStatLearn,quietly=T)
-library(randomForest,quietly=T)
-library(caret,quietly=T)
+</code></pre>
 
-set.seed(2718)
+<pre><code>## Warning: package &#39;ElemStatLearn&#39; was built under R version 3.1.1
+</code></pre>
+
+<pre><code class="r">library(randomForest,quietly=T)
+</code></pre>
+
+<pre><code>## Warning: package &#39;randomForest&#39; was built under R version 3.1.1
+</code></pre>
+
+<pre><code class="r">library(caret,quietly=T)
+</code></pre>
+
+<pre><code>## Warning: package &#39;caret&#39; was built under R version 3.1.1
+</code></pre>
+
+<pre><code class="r">set.seed(2718)
 rffit1 &lt;- randomForest(classe ~ ., ntrn, importance=T)
 
 varImpPlot(rffit1)
@@ -344,7 +363,7 @@ varImpPlot(rffit1)
 </ul>
 
 <p>To investigate the trade offs we executed a large number of randomForest calls with different sizes of training/validation set splits, different number of variables, and recorded the accuracy on each run. 
-Specificaly:</p>
+Specifically:</p>
 
 <ul>
 <li>we varied the randomForest calls for 3 variable, 7 variable, and 54 variable subsets.</li>
@@ -390,6 +409,8 @@ qplot(prob,acc,data=dfall) + geom_smooth(method=loess) + facet_grid( . ~ varnum 
 <li> Had very good accuracy.</li>
 <li> Had performance much better than the 54 variable set. </li>
 </ul>
+
+<p>Based on the values for the run and the model and split that we have chosen, <strong>we expect the out of sample error rate to be around 98.8%</strong>, the average of the three 7 var runs we did at 75% split.</p>
 
 <h1>Model and Analysis</h1>
 
@@ -446,6 +467,17 @@ rffit &lt;- randomForest(classe ~ yaw_belt + pitch_belt + roll_belt + roll_arm +
 
 <pre><code class="r">prftrn &lt;- predict(rffit, ntrn)
 confusionMatrix(prftrn, ntrn$classe)
+</code></pre>
+
+<pre><code>## Warning: package &#39;e1071&#39; was built under R version 3.1.1
+</code></pre>
+
+<pre><code>## 
+## Attaching package: &#39;e1071&#39;
+## 
+## The following object is masked from &#39;package:Hmisc&#39;:
+## 
+##     impute
 </code></pre>
 
 <pre><code>## Confusion Matrix and Statistics
