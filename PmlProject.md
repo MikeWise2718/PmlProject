@@ -23,94 +23,42 @@ More information is available from the website here (see the section on the Weig
              http://groupware.les.inf.puc-rio.br/har 
  
 # Overall Approach
+
+The overall approach was as follow:
+- 1. **Data Preperation** - here the training and test data was read and new datasets were created containing only numeric columns that were approprate for modeling.
+- 2. **Data Exploration and Model Selection** - here the data was investigated, and an investigation of the tradeoff between accuracy and training/validation split size was performed for various combinations of modeling techniques and variable subsets.
+- 3. **Modeling and Analysis** - In this section the split was performed and selected model was run and an analysis of the results was perfomed. The Out of sample error is also calculated.
+- 4. **Prediction** - Here the results for the Prediction Assignment Submission are calculated.
+
+Some additional code is also presented in the Appendix.
+
+# Data Preperation
+
 Our data came in two spreadsheet files:
-- pml-training.csv - a csv file containing 19622 observations with 160 columns with labeled training data.
-- pml-training.csv - a csv file containing 20 observations that are to be predicted with our final model and submitted. This data is only to be used in the last step of this project as it is unlabled and thus cannot be used for training.
+- pml-training.csv - a csv file containing 19622 observations with 160 columns with labeled training data. This data is to be used to train and validate our model.
+- pml-training.csv - a csv file containing 20 observations with the same columns (but minus the label). This data is t be predicted with our final model and submitted. it is only used in the last step of this project.
 
-We loaded the data and after some basic cleaning (limiting our data to the numeric or integer columns that had complete data - there were 17 of these) we did some exploratory analysis. We discovered:
-- the randomForest in the randomForest package executed quite quickly on our data
-- Both the boosting tree and the random forest that are called in the caret package were painfully slow - although probably more sophisticated.
-
-This led us to concentrate on the randomForest package implementation since we can try out more in this learning environment.
-
-We then investigated the trade offs between accuracy and validation set size, as well as how these change with the number of variables. In the end we chose to go with the model using all
-17 variables since it had the best accuracy and the performance was acceptable. The trade off can be seen below, we chose to go with 75% of the data with a corresponding accuracy of close to 977%.
-
-
-```r
-dfva <- read.csv("dftestAv-3it.csv")
-dfva$varnum <- "All vars"
-
-dfv3 <- read.csv("dftest3v-3it.csv")
-```
-
-```
-## Error: first five rows are empty: giving up
-```
-
-```r
-dfv3$varnum <- "3 vars"
-
-dfv6 <- read.csv("dftest6v-3it.csv")
-dfv6$varnum <- "6 vars"
-
-dfall <- merge(dfva,dfv3,all=T)
-dfall <- merge(dfall,dfv6,all=T)
-
-qplot(prob,acc,data=dfall) + geom_smooth(method=loess) + 
-  facet_grid( . ~ varnum ) +
-  ggtitle("Accuracy vs. Training Percentage") +
-  labs(x="Training Percentage",y="Accuracy")
-```
-
-![plot of chunk unnamed-chunk-1](figure/unnamed-chunk-1.png) 
-
-# Data Processing
 ## Loading and preprocessing the data
-Here we link in some libraries will will be using in the following code, we presume the directory
-has already been set to contain the data.
-We then load the data (as a data.table as opposed to a data.frame 
-for faster and more flexible manipulation)
+First of course we load the data.
+
 
 
 ```r
-library(data.table)
-library(ElemStatLearn)
-library(randomForest)
-library(caret)
-library(ggplot2)
-
-# Data Processing
-## Load the data
+library(data.table,quietly=T)
 
 otrn <- data.table(read.csv("pml-training.csv"))
 otst <- data.table(read.csv("pml-testing.csv"))
 ```
 
-# Data Exploration
-There are 19622 observations of 160 columns in our dataset. Here we look at the distribution of grades by participant
 
-```r
-ggplot(otrn,aes(x=classe))+geom_histogram(fill=c("darkgreen","darkred","darkred","darkred","darkred")) +
-   ggtitle("Participants and Exercise Grade") + facet_grid( . ~ user_name ) +
-   labs(x="Grade/Class",y="Count")
-```
+## Data Cleaning
+There are 160 columns in the original data, many of them blank and filled with NA values. We reduce the dataset, throwing away all columns that are not numeric or integer. We also exclude the columns "num_window" and "user_name" out of the training set as these are not sensor data columns.
 
-![plot of chunk unnamed-chunk-3](figure/unnamed-chunk-3.png) 
-
-# Data Cleaning
-There are 160 columns in the original data, many of them blank and filled with NA values. We reduce the dataset, throwing
-away all columns that are not numeric or integer. We also throw away the column "num_window" and "user_name" out of the 
-training set as these are not sensor data columns.
-Here we take a look at the participants and the judged quality of their exercises.
 
 
 ```r
-## Get rid of all non-numeric columns not present in both datasets
-cnstst <- colnames(otrn)[7:59]
-lntrn <- length(otrn)
-lntst <- length(otst)
-
+## Create new tables without of all non-numeric columns not present in both datasets
+cnstst <- colnames(otrn)[7:160]
 ntrn <- data.table(user_name=otrn[["user_name"]],classe=otrn[["classe"]])
 ntst <- data.table(user_name=otst[["user_name"]])
 
@@ -128,31 +76,125 @@ for (i in 1:length(cnstst))
 }
 ```
 
-Here we check the quality of the data, showing what columns we have retained (all relevant sensor data columns) and 
-showing that we have reduced the number of "NA" values from 1.2 million to zero, mostly by eliminating columns that consisted mostly of "NA" values.
-
-
-```r
-# Check the quality
-hdat <- melt(ntrn)
-ggplot(hdat,aes(x = value)) + facet_wrap(~variable,scales = "free_x",ncol=6) + geom_histogram()
-```
-
-![plot of chunk unnamed-chunk-5](figure/unnamed-chunk-5.png) 
+Here the quality of the data is checked, showing what columns we have retained (all relevant sensor data columns) and showing the reduction in  the number of "NA" values from 1.2 million to zero, mostly by eliminating columns that consisted mostly of "NA" values.
 
 
 ```r
 ona <- sum(is.na(otrn))
 nna <- sum(is.na(ntrn))
-msg <- sprintf("Original training na count:%d  - After processing:%d",ona,nna)
-print(msg)
+print(sprintf("Original training NA count:%d  - After processing:%d",ona,nna))
 ```
 
 ```
-## [1] "Original training na count:1287472  - After processing:0"
+## [1] "Original training NA count:1287472  - After processing:0"
 ```
 
-# Train and Validation Splits
+## Data Exploration
+Now that we have a more acceptable number of data columns (54 vs. 160) we look at the overall data.
+
+
+```r
+library(reshape)
+library(ggplot2,quietly=T)
+
+hdat <- melt(ntrn)
+ggplot(hdat, aes(x=value)) + facet_wrap(~variable, scales="free",ncol=6) + geom_histogram()
+```
+
+![plot of chunk unnamed-chunk-4](figure/unnamed-chunk-4.png) 
+There are 19622 observations of 160 columns in our dataset. Here we look at the distribution of grades by participant.
+
+
+```r
+ggplot(otrn,aes(x=classe))+geom_histogram(fill=c("darkgreen","darkred","darkred","darkred","darkred")) +
+   ggtitle("Participants and Exercise Grade") + facet_grid( . ~ user_name ) +
+   labs(x="Grade/Class",y="Count")
+```
+
+![plot of chunk unnamed-chunk-5](figure/unnamed-chunk-5.png) 
+
+
+## Model Selection
+We discovered:
+- the randomForest in the randomForest package executed quite quickly on our data
+- Both the boosting tree and the random forest that are called in the caret package were painfully slow - although probably more sophisticated.
+
+This led us to concentrate on the randomForest package implementation since we can try out more in this learning environment.
+
+We then investigated the trade offs between accuracy and validation set size, as well as how these change with the number of variables. 
+
+First we selected a set of the most 3 important and then the most 7 important variables. We did this by doing a random forest on the training
+set using all the variables. 
+
+
+```r
+library(ElemStatLearn,quietly=T)
+library(randomForest,quietly=T)
+library(caret,quietly=T)
+
+set.seed(2718)
+rffit1 <- randomForest(classe ~ ., ntrn, importance=T)
+
+varImpPlot(rffit1)
+```
+
+![plot of chunk unnamed-chunk-6](figure/unnamed-chunk-6.png) 
+
+The variables we selected were:
+- 1. yaw_belt
+- 2. roll_belt
+- 3. pitch_belt
+- 4. roll_arm
+- 5. pitch_forearm
+- 6. magnet_dumbbell_y
+- 7. magnet_dumbbell_z
+
+
+To investigate the trade offs we executed a large number of randomForest calls with different sizes of training/validation set splits, different number of variables, and recorded the accuracy on each run. 
+Specificaly:
+ - we varied the randomForest calls for 3 variable, 7 variable, and 54 variable subsets.
+ - varied the training/validation set split from 0.05% to 0.95% in 0.05% steps
+ - we ran the resulting randomForest fit against the validation set and recorded the accuracy.
+The code for this can be found in the appendix.
+
+This was done with 3 runs (one per variable subset) which contained 57 calls to randomForest each.
+
+The results of the trade-off analysis can be seen here:
+
+
+```r
+dfva <- read.csv("dftest54v-3it.csv")
+dfva$varnum <- "54 vars"
+
+dfv7 <- read.csv("dftest7v-3it.csv")
+dfv7$varnum <- "7 vars"
+
+dfv3 <- read.csv("dftest3v-3it.csv")
+dfv3$varnum <- "3 vars"
+
+dfall <- merge(dfv3,dfv7,all=T)
+dfall <- merge(dfall,dfva,all=T)
+dfall <- transform(dfall, varnum=factor(varnum,levels=c("3 vars","7 vars","54 vars") ))
+
+qplot(prob,acc,data=dfall) + geom_smooth(method=loess) + facet_grid( . ~ varnum ) +
+  ggtitle("Accuracy vs. Training Percentage") + labs(x="Training Percentage",y="Accuracy")
+```
+
+![plot of chunk unnamed-chunk-7](figure/unnamed-chunk-7.png) 
+
+The time to create these datasets was as follows (see appendix and datasets for more details):
+ -  3 var subset - dftest3v-3it.csv  - 57 rf-calls in  304.22 secs ( 5.3 secs per iteration)
+ -  7 var subset - dftest7v-3it.csv  - 57 rf-calls in  429.98 secs ( 7.7 secs per iteration)
+ - 54 var subset - dftest54v-3it.csv - 57 rf-calls in 2668.50 secs (46.8 secs per iteration)
+
+In the end we chose to go with the model using 7 variables and a 75% training/validation split since it: 
+-  Had very good accuracy.
+-  Had performance much better than the 54 variable set. 
+
+
+# Model and Analysis
+
+## Train and Validation Splits
 There was some debate in the discussion forums as to whether or not data should be split into testing and validation sets should be used with a randomForest approach. 
 
 The arguments against were:
@@ -168,15 +210,20 @@ The following code performs this split.
 
 
 ```r
+      set.seed(3141)
       ntrn0 <- ntrn
       trnidx <- createDataPartition(y=ntrn0$classe,p=0.75,list=F)
       ntrndf <- data.frame(ntrn0)
       nvld <- ntrndf[-trnidx,]
       ntrn <- ntrndf[trnidx,]
+      print(sprintf("Validation set has %d and training set has %d rows",nrow(nvld),nrow(ntrn)))
 ```
 
-# Model Fitting
+```
+## [1] "Validation set has 4904 and training set has 14718 rows"
+```
 
+## Model Fitting
 We fit a model to the data using the "Random Forests" algorithm from the random Forest library. We then evaluate the importance of the
 various variable and assess the overall accuracy of the model using the Confusion Matrix.
 
@@ -186,9 +233,11 @@ Here we fit the model after setting the random number seed so that we can reprod
 
 ```r
 set.seed(2718)
-rffit <- randomForest(classe ~ ., ntrn, importance=T)
+rffit <- randomForest(classe ~ yaw_belt + pitch_belt + roll_belt + roll_arm + pitch_forearm + 
+                        magnet_dumbbell_y + magnet_dumbbell_z, ntrn, importance=T)
 ```
 
+## Validation Analysis
 Now we check the results against the training set, not surprisingly it is 100 percent correct.
 
 ```r
@@ -230,7 +279,7 @@ confusionMatrix(prftrn, ntrn$classe)
 ## Balanced Accuracy       1.000    1.000    1.000    1.000    1.000
 ```
 
-Now we check the results against our validation set which is 25% of our original data. The accuracy is 96.7% implying an out-of-sample error of 3.3%.
+Now we check the results against our validation set which is 25% of our original data. There are 7+15+7+2+10+3+4+3+2+1+5 = 59 incorrect classifications out of 1388+922+845+798+892+59 = 4904 cases implying an accuracy of %98.797. Thus we have an an **out-of-sample error of 1.203%**.
 
 ```r
 prfvld <- predict(rffit, nvld)
@@ -242,41 +291,40 @@ confusionMatrix(prfvld, nvld$classe)
 ## 
 ##           Reference
 ## Prediction    A    B    C    D    E
-##          A 1349   10   16    4    2
-##          B   23  926   19    2    1
-##          C    8   10  807    9    2
-##          D   13    2   12  788    0
-##          E    2    1    1    1  896
+##          A 1388   10    0    0    0
+##          B    7  922    3    2    5
+##          C    0   15  845    4    1
+##          D    0    2    7  798    3
+##          E    0    0    0    0  892
 ## 
 ## Overall Statistics
 ##                                         
-##                Accuracy : 0.972         
-##                  95% CI : (0.967, 0.976)
+##                Accuracy : 0.988         
+##                  95% CI : (0.985, 0.991)
 ##     No Information Rate : 0.284         
 ##     P-Value [Acc > NIR] : <2e-16        
 ##                                         
-##                   Kappa : 0.964         
-##  Mcnemar's Test P-Value : 0.072         
+##                   Kappa : 0.985         
+##  Mcnemar's Test P-Value : NA            
 ## 
 ## Statistics by Class:
 ## 
 ##                      Class: A Class: B Class: C Class: D Class: E
-## Sensitivity             0.967    0.976    0.944    0.980    0.994
-## Specificity             0.991    0.989    0.993    0.993    0.999
-## Pos Pred Value          0.977    0.954    0.965    0.967    0.994
-## Neg Pred Value          0.987    0.994    0.988    0.996    0.999
+## Sensitivity             0.995    0.972    0.988    0.993    0.990
+## Specificity             0.997    0.996    0.995    0.997    1.000
+## Pos Pred Value          0.993    0.982    0.977    0.985    1.000
+## Neg Pred Value          0.998    0.993    0.998    0.999    0.998
 ## Prevalence              0.284    0.194    0.174    0.164    0.184
-## Detection Rate          0.275    0.189    0.165    0.161    0.183
-## Detection Prevalence    0.282    0.198    0.170    0.166    0.184
-## Balanced Accuracy       0.979    0.982    0.968    0.987    0.997
-```
-Here we look at the variables in their order of importance. We used this ranking to try our 3 and 6 variable subset models above.
-
-```r
-varImpPlot(rffit)
+## Detection Rate          0.283    0.188    0.172    0.163    0.182
+## Detection Prevalence    0.285    0.191    0.176    0.165    0.182
+## Balanced Accuracy       0.996    0.984    0.992    0.995    0.995
 ```
 
-![plot of chunk unnamed-chunk-11](figure/unnamed-chunk-11.png) 
+
+
+
+# Prediction
+
 And finally for completeness sake, we use the model we generated to predict the values needed on the submission entry for this project. 
 
 ```r
@@ -308,11 +356,8 @@ library(caret)
 otrn <- data.table(read.csv("pml-training.csv"))
 otst <- data.table(read.csv("pml-testing.csv"))
 
-## Get rid of all non-numeric columns not present in both datasets
-cnstst <- colnames(otrn)[7:59]
-lntrn <- length(otrn)
-lntst <- length(otst)
-
+## Create new tables without of all non-numeric columns not present in both datasets
+cnstst <- colnames(otrn)[7:160]
 ntrn <- data.table(user_name=otrn[["user_name"]],classe=otrn[["classe"]])
 ntst <- data.table(user_name=otst[["user_name"]])
 
@@ -338,7 +383,7 @@ print(msg)
 ntrn0 <- ntrn
 
 # Iterate
-baseprobseq <- seq( 0.05, 0.95, variable0.05 )
+baseprobseq <- seq( 0.05, 0.95, 0.05 )
 #baseprobseq <- seq( 0.1, 0.9, 0.2 )
 nsamp <- 3
 
@@ -346,13 +391,15 @@ pvec <- c()
 avec <- c()
 tvec <- c()
 evec <- c()
+wvec <- c()
 
 for (i in 1:20)
 {
   vcmd <- sprintf("v%d = c()",i)
   eval(parse(text=vcmd))
 }
-
+elap <- 0
+welap <- 0
 ntodo <- length(baseprobseq)*nsamp
 idone <- 0
 iprobdone <- 0
@@ -369,7 +416,8 @@ for (prob in baseprobseq)
       {
           eta <- ntodo*celap/idone
       }
-      msg <- sprintf("it:%d/%d prob:%5.2f last-acc:%5.3f elap:%6.1f eta-sec:%6.1f",idone,ntodo,prob,acc,celap,eta)
+      msg <- sprintf("it:%d/%d prob:%5.2f last-acc:%5.3f lelap:%6.1f eta-sec:%6.1f wall-sec:%6.1f",
+                     idone,ntodo,prob,acc,elap,eta,welap)
      # msg <- sprintf("it:%d/%d prob:%5.2f",idone,ntodo,prob)
       print(msg)
 
@@ -380,7 +428,8 @@ for (prob in baseprobseq)
 
       #rffit <- randomForest(classe ~ ., ntrn, importance=T)
       rffit <- randomForest(classe ~ yaw_belt + pitch_belt + roll_belt, ntrn, importance=T)
-      #rffit <- randomForest(classe ~ yaw_belt + pitch_belt + roll_belt + roll_arm + total_accel_arm + yaw_arm, ntrn, importance=T)
+      #rffit <- randomForest(classe ~ yaw_belt + pitch_belt + roll_belt + roll_arm + 
+      #pitch_forearm + magnet_dumbbell_y + magnet_dumbbell_z, ntrn, importance=T)
      
       prfvld <- predict(rffit, nvld)
       cm <- confusionMatrix(prfvld, nvld$classe)
@@ -395,9 +444,12 @@ for (prob in baseprobseq)
         vcmd2 <- sprintf("v%d = c(v%d,vtmp)",i,i) 
         eval(parse(text=vcmd2))
       }
-      elap <- proc.time() - jsttime
-      evec <- c(evec,elap["elapsed"])
- 
+      elap <- (proc.time() - jsttime)["elapsed"]
+      evec <- c(evec,elap)
+
+      welap <- (proc.time() - sttime)["elapsed"]
+      wvec <- c(wvec,welap)
+     
       plot(pvec,avec)
 
       idone <- idone+1
@@ -406,7 +458,7 @@ for (prob in baseprobseq)
 }
 qplot(pvec,avec) + geom_smooth()
 
-df <- data.frame(prob=pvec,acc=avec,elap=evec)
+df <- data.frame(prob=pvec,acc=avec,elap=evec,welap=wvec)
 for (i in 1:20)
 {
   vcmd3 <- sprintf("df$v%d <- v%d",i,i)
