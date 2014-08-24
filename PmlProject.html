@@ -203,11 +203,11 @@ hr {
 <p>In this exercise 6 young health participants were asked to perform one set of 10 repetitions of the Unilateral Dumbbell Biceps Curl. The quality of the execution was judged by an expert and fell into 5 different classes or grades:</p>
 
 <ul>
-<li>Class A - correct - exactly according to the specification</li>
-<li>Class B - mistake - throwing the elbows to the front</li>
-<li>Class C - mistake - lifting the dumbbell only halfway</li>
-<li>Class D - mistake - lowering the dumbbell only halfway</li>
-<li>Class E - mistake - throwing the hips to the front</li>
+<li><strong>Class A</strong> - correct - exactly according to the specification</li>
+<li><strong>Class B</strong> - mistake - throwing the elbows to the front</li>
+<li><strong>Class C</strong> - mistake - lifting the dumbbell only halfway</li>
+<li><strong>Class D</strong> - mistake - lowering the dumbbell only halfway</li>
+<li><strong>Class E</strong> - mistake - throwing the hips to the front</li>
 </ul>
 
 <p>At the same time these exercises were being performed data was being recorded from a large number of sensors mounted on the body of the exercise participant. There are 19622 observations in our data training set, the goal here is to see if this judging can be can automate.</p>
@@ -244,8 +244,12 @@ hr {
 <p>First of course we load the data.</p>
 
 <pre><code class="r">library(data.table,quietly=T)
+</code></pre>
 
-otrn &lt;- data.table(read.csv(&quot;pml-training.csv&quot;))
+<pre><code>## data.table 1.9.2  For help type: help(&quot;data.table&quot;)
+</code></pre>
+
+<pre><code class="r">otrn &lt;- data.table(read.csv(&quot;pml-training.csv&quot;))
 otst &lt;- data.table(read.csv(&quot;pml-testing.csv&quot;))
 </code></pre>
 
@@ -287,12 +291,7 @@ print(sprintf(&quot;Original training NA count:%d  - After processing:%d&quot;,o
 <p>Now that we have a more acceptable number of data columns (54 vs. 160) we look at the overall data.</p>
 
 <pre><code class="r">library(reshape)
-</code></pre>
-
-<pre><code>## Warning: package &#39;reshape&#39; was built under R version 3.1.1
-</code></pre>
-
-<pre><code class="r">library(ggplot2,quietly=T)
+library(ggplot2,quietly=T)
 
 hdat &lt;- melt(ntrn)
 ggplot(hdat, aes(x=value)) + facet_wrap(~variable, scales=&quot;free&quot;,ncol=6) + geom_histogram()
@@ -325,24 +324,10 @@ There are 19622 observations of 160 columns in our dataset. Here we look at the 
 set using all the variables. </p>
 
 <pre><code class="r">library(ElemStatLearn,quietly=T)
-</code></pre>
+library(randomForest,quietly=T)
+library(caret,quietly=T)
 
-<pre><code>## Warning: package &#39;ElemStatLearn&#39; was built under R version 3.1.1
-</code></pre>
-
-<pre><code class="r">library(randomForest,quietly=T)
-</code></pre>
-
-<pre><code>## Warning: package &#39;randomForest&#39; was built under R version 3.1.1
-</code></pre>
-
-<pre><code class="r">library(caret,quietly=T)
-</code></pre>
-
-<pre><code>## Warning: package &#39;caret&#39; was built under R version 3.1.1
-</code></pre>
-
-<pre><code class="r">set.seed(2718)
+set.seed(2718)
 rffit1 &lt;- randomForest(classe ~ ., ntrn, importance=T)
 
 varImpPlot(rffit1)
@@ -467,17 +452,6 @@ rffit &lt;- randomForest(classe ~ yaw_belt + pitch_belt + roll_belt + roll_arm +
 
 <pre><code class="r">prftrn &lt;- predict(rffit, ntrn)
 confusionMatrix(prftrn, ntrn$classe)
-</code></pre>
-
-<pre><code>## Warning: package &#39;e1071&#39; was built under R version 3.1.1
-</code></pre>
-
-<pre><code>## 
-## Attaching package: &#39;e1071&#39;
-## 
-## The following object is masked from &#39;package:Hmisc&#39;:
-## 
-##     impute
 </code></pre>
 
 <pre><code>## Confusion Matrix and Statistics

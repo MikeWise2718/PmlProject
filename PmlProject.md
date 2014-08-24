@@ -10,11 +10,11 @@ Using devices such as Jawbone Up, Nike Fuel Band, and Fitbit it is now possible 
 
 In this exercise 6 young health participants were asked to perform one set of 10 repetitions of the Unilateral Dumbbell Biceps Curl. The quality of the execution was judged by an expert and fell into 5 different classes or grades:
 
-- Class A - correct - exactly according to the specification
-- Class B - mistake - throwing the elbows to the front
-- Class C - mistake - lifting the dumbbell only halfway
-- Class D - mistake - lowering the dumbbell only halfway
-- Class E - mistake - throwing the hips to the front
+- **Class A** - correct - exactly according to the specification
+- **Class B** - mistake - throwing the elbows to the front
+- **Class C** - mistake - lifting the dumbbell only halfway
+- **Class D** - mistake - lowering the dumbbell only halfway
+- **Class E** - mistake - throwing the hips to the front
 
 At the same time these exercises were being performed data was being recorded from a large number of sensors mounted on the body of the exercise participant. There are 19622 observations in our data training set, the goal here is to see if this judging can be can automate.
 
@@ -45,7 +45,13 @@ First of course we load the data.
 
 ```r
 library(data.table,quietly=T)
+```
 
+```
+## data.table 1.9.2  For help type: help("data.table")
+```
+
+```r
 otrn <- data.table(read.csv("pml-training.csv"))
 otst <- data.table(read.csv("pml-testing.csv"))
 ```
@@ -95,13 +101,6 @@ Now that we have a more acceptable number of data columns (54 vs. 160) we look a
 
 ```r
 library(reshape)
-```
-
-```
-## Warning: package 'reshape' was built under R version 3.1.1
-```
-
-```r
 library(ggplot2,quietly=T)
 
 hdat <- melt(ntrn)
@@ -136,29 +135,9 @@ set using all the variables.
 
 ```r
 library(ElemStatLearn,quietly=T)
-```
-
-```
-## Warning: package 'ElemStatLearn' was built under R version 3.1.1
-```
-
-```r
 library(randomForest,quietly=T)
-```
-
-```
-## Warning: package 'randomForest' was built under R version 3.1.1
-```
-
-```r
 library(caret,quietly=T)
-```
 
-```
-## Warning: package 'caret' was built under R version 3.1.1
-```
-
-```r
 set.seed(2718)
 rffit1 <- randomForest(classe ~ ., ntrn, importance=T)
 
@@ -271,19 +250,6 @@ Now we check the results against the training set, not surprisingly it is 100 pe
 ```r
 prftrn <- predict(rffit, ntrn)
 confusionMatrix(prftrn, ntrn$classe)
-```
-
-```
-## Warning: package 'e1071' was built under R version 3.1.1
-```
-
-```
-## 
-## Attaching package: 'e1071'
-## 
-## The following object is masked from 'package:Hmisc':
-## 
-##     impute
 ```
 
 ```
