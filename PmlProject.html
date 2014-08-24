@@ -244,12 +244,8 @@ hr {
 <p>First of course we load the data.</p>
 
 <pre><code class="r">library(data.table,quietly=T)
-</code></pre>
 
-<pre><code>## data.table 1.9.2  For help type: help(&quot;data.table&quot;)
-</code></pre>
-
-<pre><code class="r">otrn &lt;- data.table(read.csv(&quot;pml-training.csv&quot;))
+otrn &lt;- data.table(read.csv(&quot;pml-training.csv&quot;))
 otst &lt;- data.table(read.csv(&quot;pml-testing.csv&quot;))
 </code></pre>
 
@@ -291,12 +287,7 @@ print(sprintf(&quot;Original training NA count:%d  - After processing:%d&quot;,o
 <p>Now that we have a more acceptable number of data columns (54 vs. 160) we look at the overall data.</p>
 
 <pre><code class="r">library(reshape)
-</code></pre>
-
-<pre><code>## Warning: package &#39;reshape&#39; was built under R version 3.1.1
-</code></pre>
-
-<pre><code class="r">library(ggplot2,quietly=T)
+library(ggplot2,quietly=T)
 
 hdat &lt;- melt(ntrn)
 ggplot(hdat, aes(x=value)) + facet_wrap(~variable, scales=&quot;free&quot;,ncol=6) + geom_histogram()
@@ -329,24 +320,10 @@ There are 19622 observations of 160 columns in our dataset. Here we look at the 
 set using all the variables. </p>
 
 <pre><code class="r">library(ElemStatLearn,quietly=T)
-</code></pre>
+library(randomForest,quietly=T)
+library(caret,quietly=T)
 
-<pre><code>## Warning: package &#39;ElemStatLearn&#39; was built under R version 3.1.1
-</code></pre>
-
-<pre><code class="r">library(randomForest,quietly=T)
-</code></pre>
-
-<pre><code>## Warning: package &#39;randomForest&#39; was built under R version 3.1.1
-</code></pre>
-
-<pre><code class="r">library(caret,quietly=T)
-</code></pre>
-
-<pre><code>## Warning: package &#39;caret&#39; was built under R version 3.1.1
-</code></pre>
-
-<pre><code class="r">set.seed(2718)
+set.seed(2718)
 rffit1 &lt;- randomForest(classe ~ ., ntrn, importance=T)
 
 varImpPlot(rffit1)
@@ -471,9 +448,6 @@ rffit &lt;- randomForest(classe ~ yaw_belt + pitch_belt + roll_belt + roll_arm +
 
 <pre><code class="r">prftrn &lt;- predict(rffit, ntrn)
 confusionMatrix(prftrn, ntrn$classe)
-</code></pre>
-
-<pre><code>## Warning: package &#39;e1071&#39; was built under R version 3.1.1
 </code></pre>
 
 <pre><code>## Confusion Matrix and Statistics

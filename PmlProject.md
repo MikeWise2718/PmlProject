@@ -23,7 +23,7 @@ More information is available from the website here (see the section on the Weig
              http://groupware.les.inf.puc-rio.br/har 
  
 # Overall Approach
-
+ 
 The overall approach was as follow:
 - 1. **Data Preperation** - here the training and test data was read and new datasets were created containing only numeric columns that were appropriate for modeling.
 - 2. **Data Exploration and Model Selection** - here the data was investigated, and an investigation of the trade off between accuracy and training/validation split size was performed for various combinations of modeling techniques and variable subsets.
@@ -45,13 +45,7 @@ First of course we load the data.
 
 ```r
 library(data.table,quietly=T)
-```
 
-```
-## data.table 1.9.2  For help type: help("data.table")
-```
-
-```r
 otrn <- data.table(read.csv("pml-training.csv"))
 otst <- data.table(read.csv("pml-testing.csv"))
 ```
@@ -101,13 +95,6 @@ Now that we have a more acceptable number of data columns (54 vs. 160) we look a
 
 ```r
 library(reshape)
-```
-
-```
-## Warning: package 'reshape' was built under R version 3.1.1
-```
-
-```r
 library(ggplot2,quietly=T)
 
 hdat <- melt(ntrn)
@@ -142,29 +129,9 @@ set using all the variables.
 
 ```r
 library(ElemStatLearn,quietly=T)
-```
-
-```
-## Warning: package 'ElemStatLearn' was built under R version 3.1.1
-```
-
-```r
 library(randomForest,quietly=T)
-```
-
-```
-## Warning: package 'randomForest' was built under R version 3.1.1
-```
-
-```r
 library(caret,quietly=T)
-```
 
-```
-## Warning: package 'caret' was built under R version 3.1.1
-```
-
-```r
 set.seed(2718)
 rffit1 <- randomForest(classe ~ ., ntrn, importance=T)
 
@@ -277,10 +244,6 @@ Now we check the results against the training set, not surprisingly it is 100 pe
 ```r
 prftrn <- predict(rffit, ntrn)
 confusionMatrix(prftrn, ntrn$classe)
-```
-
-```
-## Warning: package 'e1071' was built under R version 3.1.1
 ```
 
 ```

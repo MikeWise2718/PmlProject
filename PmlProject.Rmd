@@ -23,7 +23,7 @@ More information is available from the website here (see the section on the Weig
              http://groupware.les.inf.puc-rio.br/har 
  
 # Overall Approach
-
+ 
 The overall approach was as follow:
 - 1. **Data Preperation** - here the training and test data was read and new datasets were created containing only numeric columns that were appropriate for modeling.
 - 2. **Data Exploration and Model Selection** - here the data was investigated, and an investigation of the trade off between accuracy and training/validation split size was performed for various combinations of modeling techniques and variable subsets.
